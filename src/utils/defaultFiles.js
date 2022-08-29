@@ -19,7 +19,7 @@ const defaultFiles = [
     },
     {
       id: '4',
-      title: '你好世界',
+      title: '披荆斩棘',
       body: '**粗体内容**',
       createdAt: 1563762965704
     }

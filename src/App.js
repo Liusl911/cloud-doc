@@ -8,16 +8,19 @@ function App() {
   return (
     <div className="App container-fluid">
       <div className='row'>
-        <div className='col-3 left-panel'>
+        <div className='col-4 left-panel'>
           <FileSearch 
             title="My Document"
             onFileSearch={(value) => {console.log(value)}}
           />
           <FileList
             files={defaultFiles}
+            onFileClick={(id) => {console.log(id)}}
+            onSaveEdit={(id, value) => {console.log(id, value)}}
+            onFileDelete={(id) => {console.log(id)}}
           />
         </div>
-        <div className='col-9 right-panel bg-primary'>
+        <div className='col-8 right-panel bg-primary'>
           <h1>this is the right</h1>
         </div>
       </div>
