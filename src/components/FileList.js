@@ -1,36 +1,48 @@
 import React, { useState, useEffect, useRef } from "react";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faTrash, faEdit, faXmark } from '@fortawesome/free-solid-svg-icons'
-import { faMarkdown } from '@fortawesome/free-brands-svg-icons'
-import PropTypes from "prop-types"
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash, faEdit, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faMarkdown } from '@fortawesome/free-brands-svg-icons';
+import PropTypes from "prop-types";
+import useKeyPress from "../hooks/useKeyPress";
 
 const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
     const [editStatus, setEditStatus] = useState(false)
     const [value, setValue] = useState('')
     let node = useRef(null)
+    const enterPressed = useKeyPress(13)
+    const escPressed = useKeyPress(27)
 
-    const closeEdit = (e) => {
-        e.preventDefault()
+    const closeEdit = () => {
         setEditStatus(false)
         setValue('')
     }
 
     useEffect(() => {
-        const handleInputEvent = (event) => {
-            const { keyCode } = event
-            if(keyCode === 13 && editStatus){
-                const editItem = files.find(file => file.id === editStatus)
-                onSaveEdit(editItem.id, value)
-                setEditStatus(false)
-                setValue('')
-            }else if(keyCode === 27 && editStatus){
-                closeEdit(event)
-            }
+        if(enterPressed && editStatus){
+            const editItem = files.find(file => file.id === editStatus)
+            onSaveEdit(editItem.id, value)
+            setEditStatus(false)
+            setValue('')
         }
-        document.addEventListener('keyup', handleInputEvent)
-        return () => {
-            document.removeEventListener('keyup', handleInputEvent)
+        if(escPressed && editStatus){
+            closeEdit()
         }
+
+        // const handleInputEvent = (event) => {
+        //     const { keyCode } = event
+        //     if(keyCode === 13 && editStatus){
+        //         const editItem = files.find(file => file.id === editStatus)
+        //         onSaveEdit(editItem.id, value)
+        //         setEditStatus(false)
+        //         setValue('')
+        //     }else if(keyCode === 27 && editStatus){
+        //         closeEdit(event)
+        //     }
+        // }
+        // document.addEventListener('keyup', handleInputEvent)
+        // return () => {
+        //     document.removeEventListener('keyup', handleInputEvent)
+        // }
     })
 
     useEffect(() => {
@@ -44,7 +56,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
             {
                 files.map(file => (
                     <li
-                        className="list-group-item row bg-light d-flex align-item-center" 
+                        className="list-group-item row g-0 bg-light d-flex align-item-center" 
                         key={file.id}
                     >
                         {   (file.id !== editStatus) &&
@@ -62,7 +74,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
                             </>
                         }
                         {   (file.id === editStatus) &&
-                            <div className="d-flex justify-content-around align-items-center">
+                            <div className="d-flex justify-content-between align-items-center">
                                 <input ref={node} value={value} onChange={(e) => {setValue(e.target.value)}} />
                                 <button type="button" className="icon-button" onClick={closeEdit}>
                                     <FontAwesomeIcon title="关闭" icon={faXmark} size="lg" />

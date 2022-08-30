@@ -1,5 +1,5 @@
-*{
-  box-sizing: border-box;
+.search-con{
+  height: 64px;
 }
 .icon-button{
   background: none;

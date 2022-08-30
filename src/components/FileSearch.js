@@ -2,14 +2,16 @@ import React, { useState, useEffect, useRef } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMagnifyingGlass, faXmark } from '@fortawesome/free-solid-svg-icons'
 import PropTypes from "prop-types"
+import useKeyPress from "../hooks/useKeyPress";
 
 const FileSearch = ({ title, onFileSearch }) => {
     const [inputActive, setinputActive] = useState(false)
     const [value, setValue] = useState('')
+    const enterPressed = useKeyPress(13)
+    const escPressed = useKeyPress(27)
 
     // 关闭搜索
-    const closeinput = (e) => {
-        e.preventDefault()
+    const closeinput = () => {
         setValue('')
         setinputActive(false)
     }
@@ -18,18 +20,24 @@ const FileSearch = ({ title, onFileSearch }) => {
     let node = useRef(null)
 
     useEffect(() => {
-        const handleInputEvent = (event) => {
-            const { keyCode } = event
-            if(keyCode === 13 && inputActive){
-                onFileSearch(value)
-            }else if(keyCode === 27 && inputActive){
-                closeinput(event)
-            }
+        if(enterPressed && inputActive){
+            onFileSearch(value)
         }
-        document.addEventListener('keyup', handleInputEvent)
-        return () => {
-            document.removeEventListener('keyup', handleInputEvent)
+        if(escPressed && inputActive){
+            closeinput()
         }
+        // const handleInputEvent = (event) => {
+        //     const { keyCode } = event
+        //     if(keyCode === 13 && inputActive){
+        //         onFileSearch(value)
+        //     }else if(keyCode === 27 && inputActive){
+        //         closeinput(event)
+        //     }
+        // }
+        // document.addEventListener('keyup', handleInputEvent)
+        // return () => {
+        //     document.removeEventListener('keyup', handleInputEvent)
+        // }
     })
 
     useEffect(() => {
@@ -39,7 +47,7 @@ const FileSearch = ({ title, onFileSearch }) => {
     }, [inputActive])
 
     return (
-        <div className="alert alert-primary d-flex justify-content-around align-items-center">
+        <div className="search-con alert alert-primary mb-0 d-flex justify-content-between align-items-center">
             {
                 !inputActive && 
                 <>

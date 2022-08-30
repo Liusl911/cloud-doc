@@ -1,0 +1,26 @@
+.tab-conponent{
+    .nav-link .close-icon{
+        visibility: hidden;
+    }
+    .nav-link:hover .close-icon{
+        visibility: visible;
+    }
+    .active.nav-link .close-icon{
+        visibility: visible;
+    }
+    .with-unsaved.nav-link .close-icon{
+        display: none;
+    }
+    .with-unsaved.nav-link:hover .close-icon{
+        display: inline-block;
+    }
+    .with-unsaved.nav-link:hover .unsaved-item{
+        display: none;
+    }
+    .unsaved-item{
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        background-color: #D84747;
+    }
+}
