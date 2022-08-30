@@ -1,4 +1,9 @@
 .tab-conponent{
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    .nav-item{
+        flex: none;
+    }
     .nav-link .close-icon{
         visibility: hidden;
     }

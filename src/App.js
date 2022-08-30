@@ -50,7 +50,7 @@ function App() {
           <TabList 
             files={defaultFiles}
             activeId="1"
-            unSaveId={["2"]}
+            unSaveId={["1"]}
             onTabClick={ (id) => { console.log(id) } }
             onTabClose={ (id) => { console.log('closeid', id) } }
           />
