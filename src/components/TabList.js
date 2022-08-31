@@ -7,7 +7,7 @@ import './TabList.scss'
 
 const TabList = ({ files, activeId, unSaveId, onTabClick, onTabClose }) => {
     return (
-        <ul className="nav nav-pills nav-fill tab-conponent">
+        <ul className="nav nav-pills nav-fill pre-scrollable tab-conponent">
             {
                 files.map(file => {
                     const withUnSavedMark = unSaveId.includes(file.id)

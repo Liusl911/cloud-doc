@@ -31,7 +31,7 @@ const defaultFiles = [
     },
     {
       id: '6',
-      title: '奇迹',
+      title: 'miracle',
       body: '**粗体内容xxx**',
       createdAt: 1563762965704
     },
@@ -40,7 +40,49 @@ const defaultFiles = [
       title: '梦幻西游',
       body: '**粗体内容xxxx**',
       createdAt: 1563762965704
-    }
+    },
+    {
+      id: '8',
+      title: '跑跑卡丁车',
+      body: '**粗体内容xxxxx**',
+      createdAt: 1563762965704
+    },
+    {
+      id: '9',
+      title: '三国战纪',
+      body: '**粗体内容xxxxxxx**',
+      createdAt: 1563762965704
+    },
+    // {
+    //   id: '10',
+    //   title: 'QQ炫舞',
+    //   body: '**粗体内容xxxxxxxx**',
+    //   createdAt: 1563762965704
+    // },
+    // {
+    //   id: '11',
+    //   title: 'QQ飞车',
+    //   body: '**粗体内容xxxxxxxxxxx**',
+    //   createdAt: 1563762965704
+    // },
+    // {
+    //   id: '12',
+    //   title: '超级玛丽',
+    //   body: '**粗体内容xxxxxxx**',
+    //   createdAt: 1563762965704
+    // },
+    // {
+    //   id: '13',
+    //   title: '坦克大战',
+    //   body: '**粗体内容xxxxxxxx**',
+    //   createdAt: 1563762965704
+    // },
+    // {
+    //   id: '14',
+    //   title: '地下城与勇士',
+    //   body: '**粗体内容xxxxxxxxxxx**',
+    //   createdAt: 1563762965704
+    // }
   ]
   
   export default defaultFiles

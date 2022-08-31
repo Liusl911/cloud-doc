@@ -14,6 +14,7 @@ const FileSearch = ({ title, onFileSearch }) => {
     const closeinput = () => {
         setValue('')
         setinputActive(false)
+        onFileSearch('')
     }
 
     // 定义input节点，并通过useRef记住，使之不在反复渲染中丢失
@@ -61,7 +62,7 @@ const FileSearch = ({ title, onFileSearch }) => {
                 inputActive &&
                 <>
                     <input ref={node} value={value} onChange={(e) => {setValue(e.target.value)}} />
-                    <button type="button" className="icon-button" onClick={closeinput}>
+                    <button type="button" className="icon-button" onClick={() => {closeinput()}}>
                         <FontAwesomeIcon title="关闭" icon={faXmark} size="lg" />
                     </button>
                 </>

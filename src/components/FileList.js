@@ -58,25 +58,31 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
                     <li
                         className="list-group-item row g-0 bg-light d-flex align-item-center" 
                         key={file.id}
+                        onClick={() => {onFileClick(file.id)}}
                     >
                         {   (file.id !== editStatus) &&
                             <>
-                                <span className="col-2" onClick={() => {onFileClick(file.id)}}>
+                                <span className="col-2">
                                     <FontAwesomeIcon icon={faMarkdown} size="lg" />
                                 </span>
                                 <span className="col-8">{file.title}</span>
-                                <button type="button" className="icon-button col-1" onClick={() => {setEditStatus(file.id); setValue(file.title)}}>
+                                <button type="button" className="icon-button col-1" onClick={(e) => {e.stopPropagation(); setEditStatus(file.id); setValue(file.title)}}>
                                     <FontAwesomeIcon title="编辑" icon={faEdit} size="lg" />
                                 </button>
-                                <button type="button" className="icon-button col-1" onClick={() => {onFileDelete(file.id)}}>
+                                <button type="button" className="icon-button col-1" onClick={(e) => {e.stopPropagation(); onFileDelete(file.id)}}>
                                     <FontAwesomeIcon title="删除" icon={faTrash} size="lg" />
                                 </button>
                             </>
                         }
                         {   (file.id === editStatus) &&
                             <div className="d-flex justify-content-between align-items-center">
-                                <input ref={node} value={value} onChange={(e) => {setValue(e.target.value)}} />
-                                <button type="button" className="icon-button" onClick={closeEdit}>
+                                <input 
+                                    ref={node} 
+                                    value={value} 
+                                    onChange={(e) => {setValue(e.target.value)}} 
+                                    onClick={(e) => {e.stopPropagation();}}
+                                />
+                                <button type="button" className="icon-button" onClick={(e) => {e.stopPropagation(); closeEdit()}}>
                                     <FontAwesomeIcon title="关闭" icon={faXmark} size="lg" />
                                 </button>
                             </div>
