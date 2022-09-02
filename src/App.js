@@ -10,20 +10,17 @@ import TabList from './components/TabList';
 import SimpleMDE from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";
 import { v4 as uuidv4 } from 'uuid';
+import { flattenArr, objToArr } from './utils/helper'
 
 
 function App() {
-  const [files, setFiles] = useState(defaultFiles)
+  const [files, setFiles] = useState(flattenArr(defaultFiles))
   const [openedFileIds, setOpenedFileIds] = useState([])
   const [unSavedFileIds, setUnSavedFileIds] = useState([])
   const [activedFileId, setActivedFileId] = useState('')
   const [searchFiles, setSearchFiles] = useState([])
   const [keyWords, setKeyWords] = useState('')
-
-  const openedFiles = openedFileIds.map(openId => {
-    return files.find(file => file.id === openId)
-  })
-  const activedFile = files.find(file => file.id === activedFileId)
+  const filesArr = objToArr(files)
 
   const fileClick = (fileId) => {
     // 选择文件
@@ -50,13 +47,8 @@ function App() {
   }
   const contentChange = (fileId, value) => {
     // 更新内容
-    const newFiles = files.map(file => {
-      if (file.id === fileId) {
-        file.body = value
-      }
-      return file
-    })
-    setFiles(newFiles)
+    const newFile = { ...files[fileId], body: value }
+    setFiles({ ...files, [fileId]: newFile })
     // 添加未保存状态
     if (!unSavedFileIds.includes(fileId)) {
       setUnSavedFileIds([...unSavedFileIds, fileId])
@@ -64,44 +56,39 @@ function App() {
   }
   const updateFileName = (fileId, value) => {
     // 更新标题
-    const newFiles = files.map(file => {
-      if (file.id === fileId) {
-        file.title = value
-        file.isnew = false
-      }
-      return file
-    })
-    setFiles(newFiles)
+    const newFile = { ...files[fileId], title: value, isnew: false }
+    setFiles({ ...files, [fileId]: newFile })
   }
   const deleteFile = (fileId) => {
     // 删除文件
-    const newFiles = files.filter(file => file.id !== fileId)
-    setFiles(newFiles)
+    delete files[fileId]
+    setFiles(files)
     // 关闭已open的文件
-    if (openedFileIds.includes(fileId)) {
-      tabClose(fileId)
-    }
+    tabClose(fileId)
   }
   const fileSearch = (keyWords) => {
-    const newFiles = files.filter(file => file.title.includes(keyWords))
+    const newFiles = filesArr.filter(file => file.title.includes(keyWords))
     setSearchFiles(newFiles)
     setKeyWords(keyWords)
   }
-  const fileListArr = (searchFiles.length > 0 || (keyWords.length > 0 && searchFiles.length === 0)) ? searchFiles : files
-
   const createFile = () => {
-    const newFiles = files.filter(file => !file.isnew)
-    setFiles([
-      ...newFiles,
-      {
-        id: uuidv4(),
-        title: '',
-        body: '## 请输入 MarkDown 内容',
-        createdAt: new Date().getTime(),
-        isnew: true
-      }
-    ])
+    if (filesArr.find(file => file.isnew)) return
+    const newId = uuidv4()
+    const newFiles = {
+      id: newId,
+      title: '',
+      body: '## 请输出 MarkDown 内容',
+      createdAt: new Date().getTime(),
+      isnew: true
+    }
+    setFiles({ ...files, [newId]: newFiles })
   }
+
+  const openedFiles = openedFileIds.map(openId => {
+    return files[openId]
+  })
+  const activedFile = files[activedFileId]
+  const fileListArr = (searchFiles.length > 0 || (keyWords.length > 0 && searchFiles.length === 0)) ? searchFiles : filesArr
 
   return (
     <div className="App container-fluid px-0">
