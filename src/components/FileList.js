@@ -12,41 +12,36 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
     const enterPressed = useKeyPress(13)
     const escPressed = useKeyPress(27)
 
-    const closeEdit = () => {
+    const closeEdit = (file) => {
         setEditStatus(false)
         setValue('')
+        if (file.isnew) {
+            onFileDelete(file.id)
+        }
     }
 
     useEffect(() => {
-        if(enterPressed && editStatus){
-            const editItem = files.find(file => file.id === editStatus)
+        const editItem = files.find(file => file.id === editStatus)
+        if (enterPressed && editStatus && value.trim() !== '') {
             onSaveEdit(editItem.id, value)
             setEditStatus(false)
             setValue('')
         }
-        if(escPressed && editStatus){
-            closeEdit()
+        if (escPressed && editStatus) {
+            closeEdit(editItem)
         }
-
-        // const handleInputEvent = (event) => {
-        //     const { keyCode } = event
-        //     if(keyCode === 13 && editStatus){
-        //         const editItem = files.find(file => file.id === editStatus)
-        //         onSaveEdit(editItem.id, value)
-        //         setEditStatus(false)
-        //         setValue('')
-        //     }else if(keyCode === 27 && editStatus){
-        //         closeEdit(event)
-        //     }
-        // }
-        // document.addEventListener('keyup', handleInputEvent)
-        // return () => {
-        //     document.removeEventListener('keyup', handleInputEvent)
-        // }
     })
 
     useEffect(() => {
-        if(editStatus !== false){
+        const newFile = files.find(file => file.isnew)
+        if (newFile) {
+            setEditStatus(newFile.id)
+            setValue(newFile.title)
+        }
+    }, [files])
+
+    useEffect(() => {
+        if (editStatus !== false) {
             node.current.focus()
         }
     }, [editStatus])
@@ -56,33 +51,34 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
             {
                 files.map(file => (
                     <li
-                        className="list-group-item row g-0 bg-light d-flex align-item-center" 
+                        className="list-group-item row g-0 bg-light d-flex align-item-center"
                         key={file.id}
-                        onClick={() => {onFileClick(file.id)}}
+                        onClick={() => { onFileClick(file.id) }}
                     >
-                        {   (file.id !== editStatus) &&
+                        {(file.id !== editStatus && !file.isnew) &&
                             <>
                                 <span className="col-2">
                                     <FontAwesomeIcon icon={faMarkdown} size="lg" />
                                 </span>
                                 <span className="col-8">{file.title}</span>
-                                <button type="button" className="icon-button col-1" onClick={(e) => {e.stopPropagation(); setEditStatus(file.id); setValue(file.title)}}>
+                                <button type="button" className="icon-button col-1" onClick={(e) => { e.stopPropagation(); setEditStatus(file.id); setValue(file.title) }}>
                                     <FontAwesomeIcon title="编辑" icon={faEdit} size="lg" />
                                 </button>
-                                <button type="button" className="icon-button col-1" onClick={(e) => {e.stopPropagation(); onFileDelete(file.id)}}>
+                                <button type="button" className="icon-button col-1" onClick={(e) => { e.stopPropagation(); onFileDelete(file.id) }}>
                                     <FontAwesomeIcon title="删除" icon={faTrash} size="lg" />
                                 </button>
                             </>
                         }
-                        {   (file.id === editStatus) &&
+                        {((file.id === editStatus) || file.isnew) &&
                             <div className="d-flex justify-content-between align-items-center">
-                                <input 
-                                    ref={node} 
-                                    value={value} 
-                                    onChange={(e) => {setValue(e.target.value)}} 
-                                    onClick={(e) => {e.stopPropagation();}}
+                                <input
+                                    ref={node}
+                                    value={value}
+                                    placeholder="请输入文件名称"
+                                    onChange={(e) => { setValue(e.target.value) }}
+                                    onClick={(e) => { e.stopPropagation(); }}
                                 />
-                                <button type="button" className="icon-button" onClick={(e) => {e.stopPropagation(); closeEdit()}}>
+                                <button type="button" className="icon-button" onClick={(e) => { e.stopPropagation(); closeEdit(file) }}>
                                     <FontAwesomeIcon title="关闭" icon={faXmark} size="lg" />
                                 </button>
                             </div>

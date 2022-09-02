@@ -9,15 +9,16 @@ import { faPlus, faFileImport } from '@fortawesome/free-solid-svg-icons';
 import TabList from './components/TabList';
 import SimpleMDE from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";
+import { v4 as uuidv4 } from 'uuid';
 
 
 function App() {
-  const [ files, setFiles ] = useState(defaultFiles)
-  const [ openedFileIds, setOpenedFileIds ] = useState([])
-  const [ unSavedFileIds, setUnSavedFileIds ] = useState([])
-  const [ activedFileId, setActivedFileId ] = useState('')
-  const [ searchFiles, setSearchFiles ] = useState([])
-  const [ keyWords, setKeyWords ] = useState('')
+  const [files, setFiles] = useState(defaultFiles)
+  const [openedFileIds, setOpenedFileIds] = useState([])
+  const [unSavedFileIds, setUnSavedFileIds] = useState([])
+  const [activedFileId, setActivedFileId] = useState('')
+  const [searchFiles, setSearchFiles] = useState([])
+  const [keyWords, setKeyWords] = useState('')
 
   const openedFiles = openedFileIds.map(openId => {
     return files.find(file => file.id === openId)
@@ -28,8 +29,8 @@ function App() {
     // 选择文件
     setActivedFileId(fileId)
     // open列表如果不存在，则添加到open列表
-    if(!openedFileIds.includes(fileId)){
-      setOpenedFileIds([ ...openedFileIds, fileId ])
+    if (!openedFileIds.includes(fileId)) {
+      setOpenedFileIds([...openedFileIds, fileId])
     }
   }
   const tabClick = (fileId) => {
@@ -43,29 +44,30 @@ function App() {
     // 当选中的文件被关闭，重置选中的文件
     if (restFileIds.length > 0 && !restFileIds.includes(activedFileId)) {
       setActivedFileId(restFileIds[0])
-    } else if(restFileIds.length === 0) {
+    } else if (restFileIds.length === 0) {
       setActivedFileId('')
     }
   }
   const contentChange = (fileId, value) => {
     // 更新内容
     const newFiles = files.map(file => {
-      if(file.id === fileId){
+      if (file.id === fileId) {
         file.body = value
       }
       return file
     })
     setFiles(newFiles)
     // 添加未保存状态
-    if(!unSavedFileIds.includes(fileId)){
-      setUnSavedFileIds([ ...unSavedFileIds, fileId ])
+    if (!unSavedFileIds.includes(fileId)) {
+      setUnSavedFileIds([...unSavedFileIds, fileId])
     }
   }
   const updateFileName = (fileId, value) => {
     // 更新标题
     const newFiles = files.map(file => {
-      if(file.id == fileId){
+      if (file.id === fileId) {
         file.title = value
+        file.isnew = false
       }
       return file
     })
@@ -76,7 +78,7 @@ function App() {
     const newFiles = files.filter(file => file.id !== fileId)
     setFiles(newFiles)
     // 关闭已open的文件
-    if(openedFileIds.includes(fileId)){
+    if (openedFileIds.includes(fileId)) {
       tabClose(fileId)
     }
   }
@@ -87,11 +89,25 @@ function App() {
   }
   const fileListArr = (searchFiles.length > 0 || (keyWords.length > 0 && searchFiles.length === 0)) ? searchFiles : files
 
+  const createFile = () => {
+    const newFiles = files.filter(file => !file.isnew)
+    setFiles([
+      ...newFiles,
+      {
+        id: uuidv4(),
+        title: '',
+        body: '## 请输入 MarkDown 内容',
+        createdAt: new Date().getTime(),
+        isnew: true
+      }
+    ])
+  }
+
   return (
     <div className="App container-fluid px-0">
       <div className='row g-0'>
         <div className='col-4 left-panel'>
-          <FileSearch 
+          <FileSearch
             title="My Document"
             onFileSearch={fileSearch}
           />
@@ -108,7 +124,7 @@ function App() {
                   text="新建"
                   colorClass="btn-primary"
                   icon={faPlus}
-                  onBtnClick={() => {}}
+                  onBtnClick={createFile}
                 />
               </div>
             </div>
@@ -118,7 +134,7 @@ function App() {
                   text="导入"
                   colorClass="btn-success"
                   icon={faFileImport}
-                  onBtnClick={() => {}}
+                  onBtnClick={() => { }}
                 />
               </div>
             </div>
@@ -134,16 +150,16 @@ function App() {
           {
             activedFileId &&
             <>
-              <TabList 
+              <TabList
                 files={openedFiles}
                 activeId={activedFileId}
                 unSaveId={unSavedFileIds}
-                onTabClick={ tabClick }
-                onTabClose={ tabClose }
+                onTabClick={tabClick}
+                onTabClose={tabClose}
               />
-              <SimpleMDE 
+              <SimpleMDE
                 value={activedFile && activedFile.body}
-                onChange={ (value) => { contentChange(activedFile.id, value) } }
+                onChange={(value) => { contentChange(activedFile.id, value) }}
                 options={{
                   autofocus: true,
                   minHeight: "470px"
@@ -151,7 +167,7 @@ function App() {
               />
             </>
           }
-          
+
         </div>
       </div>
     </div>
