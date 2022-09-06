@@ -5,13 +5,15 @@ import FileSearch from './components/FileSearch';
 import FileList from './components/FileList';
 import defaultFiles from './utils/defaultFiles';
 import ButtonBtn from './components/ButtonBtn';
-import { faPlus, faFileImport } from '@fortawesome/free-solid-svg-icons';
 import TabList from './components/TabList';
+import { faPlus, faFileImport } from '@fortawesome/free-solid-svg-icons';
 import SimpleMDE from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";
 import { v4 as uuidv4 } from 'uuid';
-import { flattenArr, objToArr } from './utils/helper'
-
+import { flattenArr, objToArr } from './utils/helper';
+import fileHelper from './utils/fileHelper';
+const { join } = window.require('path');
+const remote = window.require('@electron/remote'); // remote的引入需下载依赖
 
 function App() {
   const [files, setFiles] = useState(flattenArr(defaultFiles))
@@ -21,6 +23,12 @@ function App() {
   const [searchFiles, setSearchFiles] = useState([])
   const [keyWords, setKeyWords] = useState('')
   const filesArr = objToArr(files)
+  const openedFiles = openedFileIds.map(openId => {
+    return files[openId]
+  })
+  const activedFile = files[activedFileId]
+  const fileListArr = (searchFiles.length > 0 || (keyWords.length > 0 && searchFiles.length === 0)) ? searchFiles : filesArr
+  const savedLocation = remote.app.getPath('documents')
 
   const fileClick = (fileId) => {
     // 选择文件
@@ -54,10 +62,18 @@ function App() {
       setUnSavedFileIds([...unSavedFileIds, fileId])
     }
   }
-  const updateFileName = (fileId, value) => {
+  const updateFileName = (fileId, value, isnew) => {
     // 更新标题
     const newFile = { ...files[fileId], title: value, isnew: false }
-    setFiles({ ...files, [fileId]: newFile })
+    if (isnew) {
+      fileHelper.writeFile(join(savedLocation, `${value}.md`), files[fileId].body).then(() => {
+        setFiles({ ...files, [fileId]: newFile })
+      })
+    } else {
+      fileHelper.renameFile(join(savedLocation, `${files[fileId].title}.md`), join(savedLocation, `${value}.md`)).then(() => {
+        setFiles({ ...files, [fileId]: newFile })
+      })
+    }
   }
   const deleteFile = (fileId) => {
     // 删除文件
@@ -83,12 +99,11 @@ function App() {
     }
     setFiles({ ...files, [newId]: newFiles })
   }
-
-  const openedFiles = openedFileIds.map(openId => {
-    return files[openId]
-  })
-  const activedFile = files[activedFileId]
-  const fileListArr = (searchFiles.length > 0 || (keyWords.length > 0 && searchFiles.length === 0)) ? searchFiles : filesArr
+  const saveContentFn = () => {
+    fileHelper.writeFile(join(savedLocation, `${activedFile.title}.md`), activedFile.body).then(() => {
+      setUnSavedFileIds(unSavedFileIds.filter(id => id !== activedFileId))
+    })
+  }
 
   return (
     <div className="App container-fluid px-0">
@@ -151,6 +166,12 @@ function App() {
                   autofocus: true,
                   minHeight: "470px"
                 }}
+              />
+              <ButtonBtn
+                text="导入"
+                colorClass="btn-success"
+                icon={faFileImport}
+                onBtnClick={saveContentFn}
               />
             </>
           }
