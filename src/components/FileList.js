@@ -9,6 +9,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
     const [editStatus, setEditStatus] = useState(false)
     const [value, setValue] = useState('')
     const [isCreate, setIsCreate] = useState(false)
+    const [isSameTitle, setIsSameTitle] = useState(false)
     let node = useRef(null)
     const enterPressed = useKeyPress(13)
     const escPressed = useKeyPress(27)
@@ -23,7 +24,17 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
 
     useEffect(() => {
         const editItem = files.find(file => file.id === editStatus)
-        if (enterPressed && editStatus && value.trim() !== '') {
+        const filesTitles = files.map(file => {
+            if (editItem && file.id !== editItem.id) {
+                return file.title
+            }
+        })
+        if (filesTitles.includes(value)) {
+            setIsSameTitle(true)
+        } else {
+            setIsSameTitle(false)
+        }
+        if (enterPressed && editStatus && value.trim() !== '' && !isSameTitle) {
             onSaveEdit(editItem.id, value, editItem.isnew)
             setEditStatus(false)
             setValue('')
@@ -82,18 +93,24 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
                             </>
                         }
                         {((file.id === editStatus && !isCreate) || (file.id === editStatus && isCreate)) &&
-                            <div className="d-flex justify-content-between align-items-center">
-                                <input
-                                    ref={node}
-                                    value={value}
-                                    placeholder="请输入文件名称"
-                                    onChange={(e) => { setValue(e.target.value) }}
-                                    onClick={(e) => { e.stopPropagation(); }}
-                                />
-                                <button type="button" className="icon-button" onClick={(e) => { e.stopPropagation(); closeEdit(file) }}>
-                                    <FontAwesomeIcon title="关闭" icon={faXmark} size="lg" />
-                                </button>
-                            </div>
+                            <>
+                                <div className="d-flex justify-content-between align-items-center">
+                                    <input
+                                        ref={node}
+                                        value={value}
+                                        style={{ width: "300px" }}
+                                        placeholder="请输入文件名称"
+                                        onChange={(e) => { setValue(e.target.value) }}
+                                        onClick={(e) => { e.stopPropagation(); }}
+                                    />
+                                    <button type="button" className="icon-button" onClick={(e) => { e.stopPropagation(); closeEdit(file) }}>
+                                        <FontAwesomeIcon title="关闭" icon={faXmark} size="lg" />
+                                    </button>
+                                </div>
+                                {isSameTitle &&
+                                    <span style={{ color: "red", fontSize: "12px" }}>文件名重复</span>
+                                }
+                            </>
                         }
                     </li>
                 ))

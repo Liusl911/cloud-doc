@@ -3,6 +3,8 @@ const { app, BrowserWindow } = require('electron')
 const remote = require("@electron/remote/main")
 remote.initialize()
 const isDev = require('electron-is-dev')
+const Store = require('electron-store');
+Store.initRenderer();
 let mainWindow
 
 app.on('ready', () => {
