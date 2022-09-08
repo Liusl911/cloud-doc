@@ -4,6 +4,8 @@ import { faTrash, faEdit, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { faMarkdown } from '@fortawesome/free-brands-svg-icons';
 import PropTypes from "prop-types";
 import useKeyPress from "../hooks/useKeyPress";
+import useContextMenu from "../hooks/useContextMenu";
+import { getParentNode } from "../utils/helper";
 
 const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
     const [editStatus, setEditStatus] = useState(false)
@@ -61,13 +63,47 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
         }
     }, [editStatus])
 
+    const clickElement = useContextMenu([{
+        label: '打开',
+        click: () => {
+            const parentElement = getParentNode(clickElement.current, 'file-item')
+            if (parentElement) {
+                onFileClick(parentElement.dataset.id)
+            }
+        }
+    }, {
+        label: '重命名',
+        click: () => {
+            const parentElement = getParentNode(clickElement.current, 'file-item')
+            if (parentElement) {
+                const id = parentElement.dataset.id
+                const title = parentElement.dataset.title
+                setEditStatus(id);
+                setValue(title);
+                const newFile = files.find(file => file.isnew)
+                if (newFile) onFileDelete(newFile.id)
+            }
+        }
+    }, {
+        label: '删除',
+        click: () => {
+            const parentElement = getParentNode(clickElement.current, 'file-item')
+            if (parentElement) {
+                onFileDelete(parentElement.dataset.id)
+            }
+        }
+    }], '.file-list', [files])
+
     return (
-        <ul className="list-group list-group-flush">
+        <ul className="list-group list-group-flush file-list">
             {
                 files.map(file => (
                     <li
-                        className="list-group-item row g-0 bg-light d-flex align-item-center"
+                        className="list-group-item row g-0 bg-light d-flex align-item-center file-item"
                         key={file.id}
+                        data-id={file.id}
+                        data-title={file.title}
+                        data-file={file}
                         onClick={() => { onFileClick(file.id) }}
                     >
                         {(file.id !== editStatus && !file.isnew) &&
@@ -76,7 +112,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
                                     <FontAwesomeIcon icon={faMarkdown} size="lg" />
                                 </span>
                                 <span className="col-8">{file.title}</span>
-                                <button type="button" className="icon-button col-1"
+                                {/* <button type="button" className="icon-button col-1"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         setEditStatus(file.id);
@@ -89,7 +125,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
                                 </button>
                                 <button type="button" className="icon-button col-1" onClick={(e) => { e.stopPropagation(); onFileDelete(file.id) }}>
                                     <FontAwesomeIcon title="删除" icon={faTrash} size="lg" />
-                                </button>
+                                </button> */}
                             </>
                         }
                         {((file.id === editStatus && !isCreate) || (file.id === editStatus && isCreate)) &&

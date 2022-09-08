@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import FileSearch from './components/FileSearch';
@@ -12,11 +12,13 @@ import { v4 as uuidv4 } from 'uuid';
 import { flattenArr, objToArr } from './utils/helper';
 import fileHelper from './utils/fileHelper';
 
+const { ipcRenderer } = window.require('electron')
+
 // node.js modules
 const { join, basename, extname, dirname } = window.require('path');
 const remote = window.require('@electron/remote'); // remote的引入需下载依赖
 const Store = window.require('electron-store');
-const fileStore = new Store({ 'name': 'Files Data' });
+const fileStore = new Store({ name: 'Files Data' });
 const saveFilesToStore = (files) => {
   // 不需要将files的所有字段存进去，比如body，isnew等等
   const filesStoreObj = objToArr(files).reduce((result, file) => {
@@ -152,7 +154,7 @@ function App() {
       setUnSavedFileIds(unSavedFileIds.filter(id => id !== activedFileId))
     })
   }
-  const inputFiles = () => {
+  const importFiles = () => {
     remote.dialog.showOpenDialog({
       title: '导入文件',
       properties: ['openFile', 'multiSelections'],
@@ -192,6 +194,16 @@ function App() {
     })
   }
 
+  useEffect(() => {
+    const callback = () => {
+      createFile()
+    }
+    ipcRenderer.on('create-new-file', callback)
+    return () => {
+      ipcRenderer.removeListener('create-new-file', callback)
+    }
+  })
+
   return (
     <div className="App container-fluid px-0">
       <div className='row g-0'>
@@ -223,7 +235,7 @@ function App() {
                   text="导入"
                   colorClass="btn-success"
                   icon={faFileImport}
-                  onBtnClick={inputFiles}
+                  onBtnClick={importFiles}
                 />
               </div>
             </div>
