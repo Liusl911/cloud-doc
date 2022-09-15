@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faMagnifyingGlass, faXmark } from '@fortawesome/free-solid-svg-icons'
 import PropTypes from "prop-types"
 import useKeyPress from "../hooks/useKeyPress";
+import useIpcRenderer from "../hooks/useIpcRenderer";
 
 const FileSearch = ({ title, onFileSearch }) => {
     const [inputActive, setinputActive] = useState(false)
@@ -21,10 +22,10 @@ const FileSearch = ({ title, onFileSearch }) => {
     let node = useRef(null)
 
     useEffect(() => {
-        if(enterPressed && inputActive){
+        if (enterPressed && inputActive) {
             onFileSearch(value)
         }
-        if(escPressed && inputActive){
+        if (escPressed && inputActive) {
             closeinput()
         }
         // const handleInputEvent = (event) => {
@@ -42,18 +43,22 @@ const FileSearch = ({ title, onFileSearch }) => {
     })
 
     useEffect(() => {
-        if(inputActive){
+        if (inputActive) {
             node.current.focus()
         }
     }, [inputActive])
 
+    useIpcRenderer({
+        'search-file': () => { setinputActive(true) }
+    })
+
     return (
         <div className="search-con alert alert-primary mb-0 d-flex justify-content-between align-items-center">
             {
-                !inputActive && 
+                !inputActive &&
                 <>
                     <span>{title}</span>
-                    <button type="button" className="icon-button" onClick={() => {setinputActive(true)}}>
+                    <button type="button" className="icon-button" onClick={() => { setinputActive(true) }}>
                         <FontAwesomeIcon title="搜索" icon={faMagnifyingGlass} size="lg" />
                     </button>
                 </>
@@ -61,8 +66,8 @@ const FileSearch = ({ title, onFileSearch }) => {
             {
                 inputActive &&
                 <>
-                    <input ref={node} value={value} onChange={(e) => {setValue(e.target.value)}} />
-                    <button type="button" className="icon-button" onClick={() => {closeinput()}}>
+                    <input ref={node} value={value} onChange={(e) => { setValue(e.target.value) }} />
+                    <button type="button" className="icon-button" onClick={() => { closeinput() }}>
                         <FontAwesomeIcon title="关闭" icon={faXmark} size="lg" />
                     </button>
                 </>

@@ -11,6 +11,7 @@ import "easymde/dist/easymde.min.css";
 import { v4 as uuidv4 } from 'uuid';
 import { flattenArr, objToArr } from './utils/helper';
 import fileHelper from './utils/fileHelper';
+import useIpcRenderer from './hooks/useIpcRenderer';
 
 const { ipcRenderer } = window.require('electron')
 
@@ -89,12 +90,14 @@ function App() {
     }
   }
   const contentChange = (fileId, value) => {
-    // 更新内容
-    const newFile = { ...files[fileId], body: value }
-    setFiles({ ...files, [fileId]: newFile })
-    // 添加未保存状态
-    if (!unSavedFileIds.includes(fileId)) {
-      setUnSavedFileIds([...unSavedFileIds, fileId])
+    if (value !== files[fileId].body) {
+      // 更新内容
+      const newFile = { ...files[fileId], body: value }
+      setFiles({ ...files, [fileId]: newFile })
+      // 添加未保存状态
+      if (!unSavedFileIds.includes(fileId)) {
+        setUnSavedFileIds([...unSavedFileIds, fileId])
+      }
     }
   }
   const updateFileName = (fileId, value, isnew) => {
@@ -194,14 +197,11 @@ function App() {
     })
   }
 
-  useEffect(() => {
-    const callback = () => {
-      createFile()
-    }
-    ipcRenderer.on('create-new-file', callback)
-    return () => {
-      ipcRenderer.removeListener('create-new-file', callback)
-    }
+  // 菜单
+  useIpcRenderer({
+    'create-new-file': createFile,
+    'import-file': importFiles,
+    'save-edit-file': saveContentFn
   })
 
   return (
@@ -265,12 +265,6 @@ function App() {
                   autofocus: true,
                   minHeight: "470px"
                 }}
-              />
-              <ButtonBtn
-                text="导入"
-                colorClass="btn-success"
-                icon={faFileImport}
-                onBtnClick={saveContentFn}
               />
             </>
           }
