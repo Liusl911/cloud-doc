@@ -1,4 +1,5 @@
-const { remote, ipcRenderer } = require('electron')
+const remote = require('@electron/remote')
+const { ipcRenderer } = require('electron')
 const Store = require('electron-store')
 const settingsStore = new Store({ name: 'Settings' })
 const qiniuConfigArr = ['#savedFileLocation', '#accessKey', '#secretKey', '#bucketName']
@@ -24,10 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
         remote.dialog.showOpenDialog({
             properties: ['openDirectory'],
             message: '选择文件的存储路径',
-        }, (path) => {
-            if (Array.isArray(path)) {
-                $('#savedFileLocation').value = path[0]
-            }
+        }).then((result) => {
+            $('#savedFileLocation').value = result.filePaths[0]
         })
     })
     $('#settings-form').addEventListener('submit', (e) => {

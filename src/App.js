@@ -19,6 +19,7 @@ const { ipcRenderer } = window.require('electron')
 const { join, basename, extname, dirname } = window.require('path');
 const remote = window.require('@electron/remote'); // remote的引入需下载依赖
 const Store = window.require('electron-store');
+const settingsStore = new Store({ name: 'Settings' })
 const fileStore = new Store({ name: 'Files Data' });
 const saveFilesToStore = (files) => {
   // 不需要将files的所有字段存进去，比如body，isnew等等
@@ -48,7 +49,7 @@ function App() {
   })
   const activedFile = files[activedFileId]
   const fileListArr = (searchFiles.length > 0 || (keyWords.length > 0 && searchFiles.length === 0)) ? searchFiles : filesArr
-  const savedLocation = remote.app.getPath('documents')
+  const savedLocation = settingsStore.get('savedFileLocation') || remote.app.getPath('documents')
 
   const fileClick = (fileId) => {
     if (files[fileId].isnew) return

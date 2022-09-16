@@ -24,19 +24,25 @@ app.on('ready', () => {
 
     const urlLocation = isDev ? 'http://localhost:3000' : 'dummyurl'
     mainWindow = new AppWindow(mainWindowConfig, urlLocation)
+    remote.enable(mainWindow.webContents)
     mainWindow.on('closed', () => {
         mainWindow = null
     })
-    remote.enable(mainWindow.webContents)
 
     ipcMain.on('open-settings-window', () => {
         const settingsWindowConfig = {
             width: 500,
             height: 400,
-            parent: mainWindow
+            parent: mainWindow,
+            webPreferences: {
+                nodeIntegration: true,
+                contextIsolation: false,
+                enableRemoteModule: true
+            }
         }
         const settingsFileLocation = `file://${path.join(__dirname, './settings/settings.html')}`
         settingsWindow = new AppWindow(settingsWindowConfig, settingsFileLocation)
+        remote.enable(settingsWindow.webContents)
         settingsWindow.on('closed', () => {
             settingsWindow = null
         })
