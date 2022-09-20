@@ -13,10 +13,17 @@ var publicBucketDomain = 'http://riam0t2fr.hd-bkt.clouddn.com';
 // console.log(publicDownloadUrl);
 
 const manager = new QiniuManager(accessKey, secretKey, bucketName)
-manager.uploadFile(key, localFile).then(res => {
+// manager.uploadFile(key, localFile).then(res => {
+//     console.log(res)
+//     return manager.deleteFile(key)
+// }).then((res) => {
+//     console.log(res)
+// })
+// manager.deleteFile(key)
+
+manager.generateDownloadLink(key).then(res => {
     console.log(res)
-    return manager.deleteFile(key)
-}).then((res) => {
+    return manager.generateDownloadLink('qn-2.md')
+}).then(res => {
     console.log(res)
 })
-// manager.deleteFile(key)

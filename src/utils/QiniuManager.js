@@ -51,6 +51,28 @@ class QiniuManager {
             this.bucketManager.delete(this.bucket, key, this._handleCallback(resolve, reject));
         })
     }
+
+    // 下载地址
+    getBucketDomain() {
+        const reqUrl = `http://uc.qbox.me/v2/domains?tbl=${this.bucket}`;
+        const digest = qiniu.util.generateAccessToken(this.mac, reqUrl);
+        console.log('trigger here')
+        return new Promise((resolve, reject) => {
+            qiniu.rpc.postWithoutForm(reqUrl, digest, this._handleCallback(resolve, reject));
+        })
+    }
+    generateDownloadLink(key) {
+        const domainPromise = this.publicBucketDomain ? Promise.resolve([this.publicBucketDomain]) : this.getBucketDomain();
+        return domainPromise.then(res => {
+            if (Array.isArray(res) && res.length > 0) {
+                const pattern = /^https?/;
+                this.publicBucketDomain = pattern.test(res[0]) ? res[0] : `http://${res[0]}`;
+                return this.bucketManager.publicDownloadUrl(this.publicBucketDomain, key);
+            } else {
+                throw Error('域名未找到，请查看存储空间是否已经过期')
+            }
+        })
+    }
 }
 
 module.exports = QiniuManager
