@@ -43,13 +43,16 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     $('.nav-tabs').addEventListener('click', (e) => {
         e.preventDefault()
-        $('.nav-link').forEach(element => {
-            element.classList.remove('active')
-        })
-        e.target.classList.add('active')
-        $('.config-area').forEach(element => {
-            element.style.display = 'none'
-        })
-        $(e.target.dataset.tab).style.display = 'block'
+        const linkIndex = Object.values(e.target.classList).indexOf('nav-link')
+        if (linkIndex !== -1) {
+            $('.nav-link').forEach(element => {
+                element.classList.remove('active')
+            })
+            e.target.classList.add('active')
+            $('.config-area').forEach(element => {
+                element.style.display = 'none'
+            })
+            $(e.target.dataset.tab).style.display = 'block'
+        }
     })
 })

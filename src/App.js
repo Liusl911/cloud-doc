@@ -9,27 +9,30 @@ import { faPlus, faFileImport } from '@fortawesome/free-solid-svg-icons';
 import SimpleMDE from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";
 import { v4 as uuidv4 } from 'uuid';
-import { flattenArr, objToArr } from './utils/helper';
+import { flattenArr, objToArr, timestampToString } from './utils/helper';
 import fileHelper from './utils/fileHelper';
 import useIpcRenderer from './hooks/useIpcRenderer';
 
-const { ipcRenderer } = window.require('electron')
 
 // node.js modules
 const { join, basename, extname, dirname } = window.require('path');
 const remote = window.require('@electron/remote'); // remote的引入需下载依赖
+const { ipcRenderer } = window.require('electron')
 const Store = window.require('electron-store');
 const settingsStore = new Store({ name: 'Settings' })
+const getAutoSync = () => ['accessKey', 'secretKey', 'bucketName', 'enableAutoSync'].every(key => !!settingsStore.get(key)) // 七牛云是否设置以及是否勾选云同步
 const fileStore = new Store({ name: 'Files Data' });
 const saveFilesToStore = (files) => {
   // 不需要将files的所有字段存进去，比如body，isnew等等
   const filesStoreObj = objToArr(files).reduce((result, file) => {
-    const { id, title, path, createdAt } = file
+    const { id, title, path, createdAt, isSynced, updateAt } = file
     result[id] = {
       id,
       title,
       path,
-      createdAt
+      createdAt,
+      isSynced,
+      updateAt
     }
     return result
   }, {})
@@ -154,8 +157,12 @@ function App() {
     setFiles({ ...files, [newId]: newFiles })
   }
   const saveContentFn = () => {
-    fileHelper.writeFile(activedFile.path, activedFile.body).then(() => {
+    const { path, body, title } = activedFile
+    fileHelper.writeFile(path, body).then(() => {
       setUnSavedFileIds(unSavedFileIds.filter(id => id !== activedFileId))
+      if (getAutoSync()) {
+        ipcRenderer.send('upload-file', { key: `${title}.md`, path })
+      }
     })
   }
   const importFiles = () => {
@@ -198,11 +205,20 @@ function App() {
     })
   }
 
+  const activeFileUploaded = () => {
+    const { id } = activedFile
+    const modifiedFile = { ...files[id], isSynced: true, updateAt: new Date().getTime() }
+    const newFiles = { ...files, [id]: modifiedFile }
+    setFiles(newFiles)
+    saveFilesToStore(newFiles)
+  }
+
   // 菜单
   useIpcRenderer({
     'create-new-file': createFile,
     'import-file': importFiles,
-    'save-edit-file': saveContentFn
+    'save-edit-file': saveContentFn,
+    'active-file-uploaded': activeFileUploaded
   })
 
   return (
@@ -251,7 +267,7 @@ function App() {
           }
           {
             activedFileId &&
-            <>
+            <div className='edit-page'>
               <TabList
                 files={openedFiles}
                 activeId={activedFileId}
@@ -262,12 +278,12 @@ function App() {
               <SimpleMDE
                 value={activedFile && activedFile.body}
                 onChange={(value) => { contentChange(activedFile.id, value) }}
-                options={{
-                  autofocus: true,
-                  minHeight: "470px"
-                }}
+                options={{ autofocus: true }}
               />
-            </>
+              {activedFile.isSynced &&
+                <span className='sync-status'>已同步，上次同步{timestampToString(activedFile.updateAt)}</span>
+              }
+            </div>
           }
         </div>
       </div>
