@@ -5,6 +5,7 @@ import FileSearch from './components/FileSearch';
 import FileList from './components/FileList';
 import ButtonBtn from './components/ButtonBtn';
 import TabList from './components/TabList';
+import Loader from './components/loader';
 import { faPlus, faFileImport } from '@fortawesome/free-solid-svg-icons';
 import SimpleMDE from "react-simplemde-editor";
 import "easymde/dist/easymde.min.css";
@@ -46,6 +47,7 @@ function App() {
   const [activedFileId, setActivedFileId] = useState('')
   const [searchFiles, setSearchFiles] = useState([])
   const [keyWords, setKeyWords] = useState('')
+  const [loading, setLoading] = useState(false)
   const filesArr = objToArr(files)
   const openedFiles = openedFileIds.map(openId => {
     return files[openId]
@@ -62,20 +64,24 @@ function App() {
     if (!openedFileIds.includes(fileId)) {
       setOpenedFileIds([...openedFileIds, fileId])
     }
-    const currentFile = files[fileId]
-    if (!currentFile.isLoaded) {
-      fileHelper.readFile(currentFile.path).then((value) => {
-        const newFile = { ...files[fileId], body: value, isLoaded: true }
-        setFiles({ ...files, [fileId]: newFile })
-      }).catch(err => {
-        alert(err)
-        // 删除文件
-        const { [fileId]: value, ...afterDelete } = files
-        setFiles(afterDelete)
-        saveFilesToStore(afterDelete)
-        // 关闭opened文件
-        tabClose(fileId)
-      })
+    const { id, title, isLoaded, path } = files[fileId]
+    if (!isLoaded) {
+      if (getAutoSync()) {
+        ipcRenderer.send('download-file', { key: `${title}.md`, path, id })
+      } else {
+        fileHelper.readFile(path).then((value) => {
+          const newFile = { ...files[fileId], body: value, isLoaded: true }
+          setFiles({ ...files, [fileId]: newFile })
+        }).catch(err => {
+          alert(err)
+          // 删除文件
+          const { [fileId]: value, ...afterDelete } = files
+          setFiles(afterDelete)
+          saveFilesToStore(afterDelete)
+          // 关闭opened文件
+          tabClose(fileId)
+        })
+      }
     }
   }
   const tabClick = (fileId) => {
@@ -116,9 +122,13 @@ function App() {
       })
     } else {
       const oldPath = files[fileId].path
+      const oldValue = files[fileId].title
       fileHelper.renameFile(oldPath, newPath).then(() => {
         setFiles(newFiles)
         saveFilesToStore(newFiles)
+        if (getAutoSync()) {
+          ipcRenderer.send('rename-file', { oldKey: `${oldValue}.md`, newKey: `${value}.md` })
+        }
       })
     }
   }
@@ -128,13 +138,17 @@ function App() {
       const { [fileId]: value, ...afterDelete } = files
       setFiles(afterDelete)
     } else {
-      fileHelper.deleteFile(files[fileId].path).then(() => {
+      const { path, title } = files[fileId]
+      fileHelper.deleteFile(path).then(() => {
         // 删除文件
         const { [fileId]: value, ...afterDelete } = files
         setFiles(afterDelete)
         saveFilesToStore(afterDelete)
         // 关闭opened文件
         tabClose(fileId)
+        if (getAutoSync()) {
+          ipcRenderer.send('delete-file', { key: `${title}.md` })
+        }
       })
     }
   }
@@ -205,6 +219,7 @@ function App() {
     })
   }
 
+  // 上传至云端
   const activeFileUploaded = () => {
     const { id } = activedFile
     const modifiedFile = { ...files[id], isSynced: true, updateAt: new Date().getTime() }
@@ -213,16 +228,68 @@ function App() {
     saveFilesToStore(newFiles)
   }
 
+  // 从云端下载
+  const activeFileDownloaded = (event, message) => {
+    const currentFile = files[message.id]
+    const { id, path } = currentFile
+    fileHelper.readFile(path).then((value) => {
+      let newFile
+      if (message.status === 'downloaded-success') {
+        newFile = { ...files[id], body: value, isLoaded: true, isSynced: true, updateAt: new Date().getTime() }
+      } else {
+        newFile = { ...files[id], body: value, isLoaded: true }
+      }
+      const newFiles = { ...files, [id]: newFile }
+      setFiles(newFiles)
+      saveFilesToStore(newFiles)
+    }).catch(err => {
+      alert(err)
+      // 删除文件
+      const { [id]: value, ...afterDelete } = files
+      setFiles(afterDelete)
+      saveFilesToStore(afterDelete)
+      // 关闭opened文件
+      tabClose(id)
+    })
+  }
+
+  // 全部同步至云端
+  const fileUploaded = () => {
+    const uploadedTime = new Date().getTime()
+    const newFiles = objToArr(files).reduce((result, file) => {
+      result[file.id] = {
+        ...files[file.id],
+        isSynced: true,
+        updateAt: uploadedTime
+      }
+      return result
+    }, {})
+    setFiles(newFiles)
+    saveFilesToStore(newFiles)
+  }
+
+  // 从云端下载至本地
+  const filesAllDownloaded = (event, data) => {
+    console.log(data)
+  }
+
   // 菜单
   useIpcRenderer({
     'create-new-file': createFile,
     'import-file': importFiles,
     'save-edit-file': saveContentFn,
-    'active-file-uploaded': activeFileUploaded
+    'active-file-uploaded': activeFileUploaded,
+    'file-downloaded': activeFileDownloaded,
+    'loading-status': (event, status) => { setLoading(status) },
+    'files-uploaded': fileUploaded,
+    'files-all-downloaded': filesAllDownloaded
   })
 
   return (
     <div className="App container-fluid px-0">
+      {loading &&
+        <Loader />
+      }
       <div className='row g-0'>
         <div className='col-4 left-panel'>
           <FileSearch

@@ -9,12 +9,9 @@ const key = 'qn-3.md';
 const downloadPath = path.join(__dirname, key)
 
 const manager = new QiniuManager(accessKey, secretKey, bucketName)
-// manager.uploadFile(key, localFile).then(res => {
-//     console.log(res)
-//     return manager.deleteFile(key)
-// }).then((res) => {
-//     console.log(res)
-// })
+manager.uploadFile(key, localFile).then(res => {
+    console.log(res)
+})
 // manager.deleteFile(key)
 
 // manager.generateDownloadLink(key).then(res => {
@@ -24,8 +21,8 @@ const manager = new QiniuManager(accessKey, secretKey, bucketName)
 //     console.log(res)
 // })
 
-manager.downloadFile(key, downloadPath).then(() => {
-    console.log('下载写入文件完毕')
-}).catch(err => {
-    console.error(err)
-})
+// manager.downloadFile(key, downloadPath).then(() => {
+//     console.log('下载写入文件完毕')
+// }).catch(err => {
+//     console.error(err)
+// })

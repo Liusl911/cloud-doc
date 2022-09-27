@@ -1,6 +1,7 @@
 const qiniu = require('qiniu')
 const axios = require('axios')
 const fs = require('fs')
+const { resolve } = require('path')
 
 class QiniuManager {
     constructor(accessKey, secretKey, bucket) {
@@ -48,9 +49,28 @@ class QiniuManager {
         })
     }
 
+    // 删除文件
     deleteFile(key) {
         return new Promise((resolve, reject) => {
             this.bucketManager.delete(this.bucket, key, this._handleCallback(resolve, reject));
+        })
+    }
+
+    // 重命名文件
+    renameFile(oldKey, newKey) {
+        // 强制覆盖已有同名文件
+        const options = {
+            force: true
+        }
+        return new Promise((resolve, reject) => {
+            this.bucketManager.move(this.bucket, oldKey, this.bucket, newKey, options, this._handleCallback(resolve, reject));
+        })
+    }
+
+    // 获取文件信息
+    getStat(key) {
+        return new Promise((resolve, reject) => {
+            this.bucketManager.stat(this.bucket, key, this._handleCallback(resolve, reject));
         })
     }
 
@@ -88,12 +108,22 @@ class QiniuManager {
         }).then(response => {
             const writer = fs.createWriteStream(downloadPath)
             response.data.pipe(writer)
-            new Promise((resolve, reject) => {
-                writer.on('finish', resolve)
+            return new Promise((resolve, reject) => {
+                writer.on('finish', resolve({ key: key, path: downloadPath }))
                 writer.on('error', reject)
             })
         }).catch(err => {
             return Promise.reject({ err: err.response })
+        })
+    }
+
+    filesListPrefix() {
+        const options = {
+            limit: 10,
+            prefix: '',
+        }
+        return new Promise((resolve, reject) => {
+            this.bucketManager.listPrefix(this.bucket, options, this._handleCallback(resolve, reject));
         })
     }
 }

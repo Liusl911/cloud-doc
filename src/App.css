@@ -13,10 +13,20 @@
   line-height: 300px;
   text-align: center;
 }
+.start-page::selection {
+  background: none;
+}
 .left-panel {
   height: 100vh;
   position: relative;
   background-color: #f8f9fa;
+}
+.file-list {
+  position: absolute;
+  width: 100%;
+  top: 64px;
+  bottom: 36px;
+  overflow-y: auto;
 }
 .button-group {
   position: absolute;
