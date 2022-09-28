@@ -78,7 +78,6 @@ class QiniuManager {
     getBucketDomain() {
         const reqUrl = `http://uc.qbox.me/v2/domains?tbl=${this.bucket}`;
         const digest = qiniu.util.generateAccessToken(this.mac, reqUrl);
-        console.log('trigger here')
         return new Promise((resolve, reject) => {
             qiniu.rpc.postWithoutForm(reqUrl, digest, this._handleCallback(resolve, reject));
         })

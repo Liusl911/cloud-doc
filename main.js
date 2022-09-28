@@ -10,6 +10,7 @@ const fileStore = new Store({ name: 'Files Data' })
 const menuTemplate = require('./src/menuTemplate')
 const QiniuManager = require('./src/utils/QiniuManager')
 const path = require('path')
+const { join } = require('path')
 const savedLocation = settingsStore.get('savedFileLocation') || remote.app.getPath('documents')
 let mainWindow, settingsWindow
 
@@ -33,7 +34,7 @@ app.on('ready', () => {
         }
     }
 
-    const urlLocation = isDev ? 'http://localhost:3000' : 'dummyurl'
+    const urlLocation = isDev ? 'http://localhost:3000' : `file://${join(__dirname, './build/index.html')}`
     mainWindow = new AppWindow(mainWindowConfig, urlLocation)
     remote.enable(mainWindow.webContents)
     mainWindow.on('closed', () => {
@@ -86,7 +87,6 @@ app.on('ready', () => {
     ipcMain.on('upload-file', (event, data) => {
         const manager = createManager()
         manager.uploadFile(data.key, data.path).then(data => {
-            console.log('上传成功', data)
             mainWindow.webContents.send('active-file-uploaded')
         }).catch(() => {
             dialog.showErrorBox('同步失败', '请检查七牛云参数是否正确')
@@ -126,16 +126,13 @@ app.on('ready', () => {
             const serverUpdatedTime = Math.round(res.putTime / 10000)
             const localUpdatedTime = filesObj[id].updateAt
             if (serverUpdatedTime > localUpdatedTime || !localUpdatedTime) {
-                console.log('new-file')
                 manager.downloadFile(key, path).then(() => {
                     mainWindow.webContents.send('file-downloaded', { status: 'downloaded-success', id })
                 })
             } else {
-                console.log('no-new-file')
                 mainWindow.webContents.send('file-downloaded', { status: 'no-new-success', id })
             }
         }, (err) => {
-            console.log(err)
             if (err.statusCode === 612) {
                 mainWindow.webContents.send('file-downloaded', { status: 'no-file', id })
             }
@@ -189,7 +186,6 @@ app.on('ready', () => {
             })
             return Promise.all(downloadPromiseArr)
         }).then(res => {
-            console.log(res)
             dialog.showMessageBox({
                 type: 'info',
                 title: `成功下载了${res.length}个文件`,

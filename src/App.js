@@ -99,17 +99,6 @@ function App() {
       setActivedFileId('')
     }
   }
-  const contentChange = (fileId, value) => {
-    if (value !== files[fileId].body) {
-      // 更新内容
-      const newFile = { ...files[fileId], body: value }
-      setFiles({ ...files, [fileId]: newFile })
-      // 添加未保存状态
-      if (!unSavedFileIds.includes(fileId)) {
-        setUnSavedFileIds([...unSavedFileIds, fileId])
-      }
-    }
-  }
   const updateFileName = (fileId, value, isnew) => {
     // 新建文件或更新标题
     const newPath = isnew ? join(savedLocation, `${value}.md`) : join(dirname(files[fileId].path), `${value}.md`)
@@ -170,6 +159,17 @@ function App() {
     }
     setFiles({ ...files, [newId]: newFiles })
   }
+  const contentChange = (fileId, value) => {
+    if (value !== files[fileId].body) {
+      // 更新内容
+      const newFile = { ...files[fileId], body: value }
+      setFiles({ ...files, [fileId]: newFile })
+      // 添加未保存状态
+      if (!unSavedFileIds.includes(fileId)) {
+        setUnSavedFileIds([...unSavedFileIds, fileId])
+      }
+    }
+  }
   const saveContentFn = () => {
     const { path, body, title } = activedFile
     fileHelper.writeFile(path, body).then(() => {
@@ -187,7 +187,6 @@ function App() {
         { name: 'Markdown files', extensions: ['md'] }
       ]
     }).then((result) => {
-      console.log(result)
       // 去重
       const filteredPaths = result.filePaths.filter(path => {
         const isAdded = Object.values(files).find(file => {
@@ -270,7 +269,56 @@ function App() {
 
   // 从云端下载至本地
   const filesAllDownloaded = (event, data) => {
-    console.log(data)
+    const currentFiles = { ...files }
+    const currentFilesArr = objToArr(files)
+    const downloadedTime = new Date().getTime()
+    const newFiles = data.reduce((resultObj, file) => {
+      const { title, path } = file
+      const currentFile = currentFilesArr.find(item => item.title === title)
+      if (currentFile) {
+        // 下载的文件已存在于本地
+        const { id } = currentFile
+        const updatedItem = {
+          ...currentFile,
+          isSynced: true,
+          updateAt: downloadedTime
+        }
+        return {
+          ...resultObj,
+          [id]: updatedItem
+        }
+      } else {
+        // 下载的文件不存在于本地
+        const newId = uuidv4()
+        const newItem = {
+          id: newId,
+          title: title,
+          createdAt: downloadedTime,
+          path: path,
+          isSynced: true,
+          updateAt: downloadedTime
+        }
+        return {
+          ...resultObj,
+          [newId]: newItem
+        }
+      }
+    }, { ...currentFiles })
+    setFiles(newFiles)
+    saveFilesToStore(newFiles)
+    if (activedFileId !== '') {
+      const fileItem = files[activedFileId]
+      const { path } = fileItem
+      fileHelper.readFile(path).then((value) => {
+        const newFile = {
+          ...fileItem,
+          body: value
+        }
+        let newFiles = { ...files, [activedFileId]: newFile }
+        setFiles(newFiles)
+        saveFilesToStore(newFiles)
+      })
+    }
   }
 
   // 菜单
@@ -345,7 +393,9 @@ function App() {
               <SimpleMDE
                 value={activedFile && activedFile.body}
                 onChange={(value) => { contentChange(activedFile.id, value) }}
-                options={{ autofocus: true }}
+                options={{
+                  autofocus: !fileListArr.find(file => file.isnew)
+                }}
               />
               {activedFile.isSynced &&
                 <span className='sync-status'>已同步，上次同步{timestampToString(activedFile.updateAt)}</span>
