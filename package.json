@@ -23,7 +23,7 @@
     "buildMain": "webpack",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "release": "cross-env GH_TOKEN=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 electron-builder",
+    "release": "cross-env GH_TOKEN=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 electron-builder",
     "prerelease": "npm run build && npm run buildMain",
     "prepack": "npm run build && npm run buildMain",
     "predist": "npm run build && npm run buildMain"

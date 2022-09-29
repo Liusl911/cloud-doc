@@ -29,7 +29,7 @@ app.on('ready', () => {
         autoUpdater.updateConfigPath = path.join(__dirname, 'dev-app-update.yml')
     }
     autoUpdater.autoDownload = false
-    autoUpdater.checkForUpdatesAndNotify()
+    autoUpdater.checkForUpdates()
     autoUpdater.on('error', (error) => {
         dialog.showErrorBox('Error: ', error == null ? "unknown" : (error.stack || error).toString())
     })
