@@ -1,6 +1,6 @@
 {
   "name": "cloud-doc",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "main.js",
   "description": "Online Markdown Editor using Qiniu cloud service",
   "author": {
@@ -9,28 +9,9 @@
   },
   "private": true,
   "dependencies": {
-    "@electron/remote": "^2.0.8",
-    "@fortawesome/fontawesome-svg-core": "^6.1.2",
-    "@fortawesome/free-brands-svg-icons": "^6.1.2",
-    "@fortawesome/free-solid-svg-icons": "^6.1.2",
-    "@fortawesome/react-fontawesome": "^0.2.0",
-    "@testing-library/jest-dom": "^5.16.5",
-    "@testing-library/react": "^13.3.0",
-    "@testing-library/user-event": "^13.5.0",
-    "axios": "^0.27.2",
     "bootstrap": "^5.2.0",
-    "classnames": "^2.3.1",
-    "easymde": "^2.17.0",
-    "electron-is-dev": "^2.0.0",
     "electron-store": "^8.1.0",
-    "node-sass": "^7.0.1",
-    "qiniu": "^7.7.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-scripts": "5.0.1",
-    "react-simplemde-editor": "^5.0.2",
-    "uuid": "^8.3.2",
-    "web-vitals": "^2.1.4"
+    "@electron/remote": "^2.0.8"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -39,26 +20,71 @@
     "eject": "react-scripts eject",
     "onlyEle": "nodemon --watch main.js --watch src/menuTemplate.js --exec \"electron .\"",
     "dev": "concurrently \"wait-on http://localhost:3000 && electron .\" \"cross-env BROWSER=none npm start\"",
+    "buildMain": "webpack",
     "pack": "electron-builder --dir",
     "dist": "electron-builder",
-    "prepack": "npm run build"
+    "prepack": "npm run build && npm run buildMain",
+    "predist": "npm run build && npm run buildMain"
   },
   "homepage": "./",
   "build": {
     "appId": "cloudDoc",
     "productName": "七牛云文档",
     "copyright": "Copyright © 2022 ${author}",
-    "extends": null,
     "files": [
       "build/**/*",
       "node_modules/**/*",
       "settings/**/*",
-      "package.json",
-      "main.js",
-      "./src/menuTemplate.js",
-      "./src/AppWindow.js",
-      "./src/utils/QiniuManager.js"
-    ]
+      "package.json"
+    ],
+    "publish": "githulb",
+    "extends": null,
+    "directories": {
+      "buildResources": "assets"
+    },
+    "extraMetadata": {
+      "main": "./build/main.js"
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "dmg": {
+      "background": "assets/appdmg.png",
+      "icon": "assets/icon.icns",
+      "iconSize": 100,
+      "contents": [
+        {
+          "x": 380,
+          "y": 280,
+          "type": "link",
+          "path": "/Applications"
+        },
+        {
+          "x": 110,
+          "y": 280,
+          "type": "file"
+        }
+      ],
+      "window": {
+        "width": 500,
+        "height": 500
+      }
+    },
+    "win": {
+      "target": [
+        "msi",
+        "nsis"
+      ],
+      "icon": "assets/icon.ico",
+      "artifactName": "${productName}-Web-Setup-${version}.${ext}",
+      "publisherName": "Liusl"
+    },
+    "nsis": {
+      "allowToChangeInstallationDirectory": true,
+      "oneClick": false,
+      "perMachine": false
+    }
   },
   "eslintConfig": {
     "extends": [
@@ -79,10 +105,30 @@
     ]
   },
   "devDependencies": {
+    "@fortawesome/fontawesome-svg-core": "^6.1.2",
+    "@fortawesome/free-brands-svg-icons": "^6.1.2",
+    "@fortawesome/free-solid-svg-icons": "^6.1.2",
+    "@fortawesome/react-fontawesome": "^0.2.0",
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^13.3.0",
+    "@testing-library/user-event": "^13.5.0",
+    "axios": "^0.27.2",
+    "classnames": "^2.3.1",
     "concurrently": "^7.3.0",
     "cross-env": "^7.0.3",
+    "easymde": "^2.17.0",
     "electron": "^20.1.0",
     "electron-builder": "^23.3.3",
-    "wait-on": "^6.0.1"
+    "electron-is-dev": "^2.0.0",
+    "node-sass": "^7.0.1",
+    "qiniu": "^7.7.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-scripts": "5.0.1",
+    "react-simplemde-editor": "^5.0.2",
+    "uuid": "^8.3.2",
+    "wait-on": "^6.0.1",
+    "web-vitals": "^2.1.4",
+    "webpack-cli": "^3.3.9"
   }
 }

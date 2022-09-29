@@ -34,7 +34,7 @@ app.on('ready', () => {
         }
     }
 
-    const urlLocation = isDev ? 'http://localhost:3000' : `file://${join(__dirname, './build/index.html')}`
+    const urlLocation = isDev ? 'http://localhost:3000' : `file://${join(__dirname, './index.html')}`
     mainWindow = new AppWindow(mainWindowConfig, urlLocation)
     remote.enable(mainWindow.webContents)
     mainWindow.on('closed', () => {
