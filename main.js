@@ -27,6 +27,11 @@ app.on('ready', () => {
 
     if (isDev) {
         autoUpdater.updateConfigPath = path.join(__dirname, 'dev-app-update.yml')
+        Object.defineProperty(app, 'isPackaged', {
+            get() {
+                return true;
+            }
+        });
     }
     autoUpdater.autoDownload = false
     autoUpdater.checkForUpdates()
