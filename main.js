@@ -12,7 +12,7 @@ const menuTemplate = require('./src/menuTemplate')
 const QiniuManager = require('./src/utils/QiniuManager')
 const path = require('path')
 const { join } = require('path')
-const savedLocation = settingsStore.get('savedFileLocation') || remote.app.getPath('documents')
+const savedLocation = settingsStore.get('savedFileLocation') || app.getPath('documents')
 let mainWindow, settingsWindow
 
 // 实例化 QiniuManager
